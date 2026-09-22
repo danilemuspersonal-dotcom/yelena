@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para mi Yelena bella 💛</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* Estilo para la tarjeta de mensaje bonito que aparece al hacer clic */
+        #message-box {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50px);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 35px;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            font-size: 1.3rem;
+            color: #d48806;
+            font-weight: bold;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.5s ease;
+            pointer-events: none;
+            z-index: 10;
+            border: 2px solid #ffd700;
+        }
+
+        #message-box.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Instrucción personalizada para Yelena */
+        .instruction {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.85);
+            color: #b37400;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+            z-index: 5;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1.5px solid #ffe680;
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="message-box">¡Toca una abeja para descubrir un mensaje! 💛</div>
+    <div class="instruction">🌼 TUS FLORES AMARILLAS MI YELENA BELLA, TOCA LAS ABEJITAS 💛🌼🌼</div>
+    
+    <canvas id="gardenCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gardenCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Lista de mensajes bonitos y especiales
+        const messages = [
+            "Eres lo más hermoso que ilumina mis días, Yelena bella. 🌻",
+            "Cada flor de este campo brilla tanto como tu hermosa sonrisa. ✨",
+            "Tu dulzura supera la miel de todas las abejitas juntas. 🍯💛",
+            "Gracias por existir y hacer mi vida tan especial. 🌷",
+            "Eres el sol que da vida a mis días más bonitos. ☀️",
+            "No hay paisaje en el mundo que se compare a la belleza de tus ojos. 😍",
+            "Que este caminito de flores te recuerde cuánto te quiero. 🌼",
+            "Mi pedacito de cielo, eres perfecta tal como eres. ⭐"
+        ];
+
+        const messageBox = document.getElementById('message-box');
+        let messageTimeout;
+
+        function showRandomMessage() {
+            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+            messageBox.textContent = randomMsg;
+            messageBox.classList.add('show');
+
+            clearTimeout(messageTimeout);
+            messageTimeout = setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 4500);
+        }
+
+        // Generar flores estáticas en el fondo (el campo)
+        const flowers = [];
+        const numFlowers = 130;
+        for (let i = 0; i < numFlowers; i++) {
+            flowers.push({
+                x: Math.random() * canvas.width,
+                y: canvas.height * 0.55 + Math.random() * (canvas.height * 0.45),
+                size: 6 + Math.random() * 8,
+                color: Math.random() > 0.3 ? '#FFD700' : '#FFA500', // Tonos amarillos y naranjas
+                stemHeight: 15 + Math.random() * 25
+            });
+        }
+        flowers.sort((a, b) => a.y - b.y);
+
+        // Generar abejas volando
+        const bees = [];
+        const numBees = 7;
+        for (let i = 0; i < numBees; i++) {
+            bees.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * (canvas.height * 0.7),
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 1.5,
+                size: 14,
+                wingAngle: 0,
+                wobble: Math.random() * 100
+            });
+        }
+
+        // Manejador de clics para detectar si le diste a una abeja
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            for (let bee of bees) {
+                const dist = Math.hypot(bee.x - mouseX, bee.y - mouseY);
+                if (dist < bee.size * 2.5) {
+                    showRandomMessage();
+                    bee.vy -= 4; // Impulso divertido
+                    break;
+                }
+            }
+        });
+
+        // Bucle de animación principal
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Dibujar el Sol
+            const sunGradient = ctx.createRadialGradient(100, 100, 10, 100, 100, 80);
+            sunGradient.addColorStop(0, 'rgba(255, 255, 200, 1)');
+            sunGradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+            ctx.fillStyle = sunGradient;
+            ctx.beginPath();
+            ctx.arc(100, 100, 80, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(100, 100, 35, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 2. Dibujar Colinas de fondo del paisaje
+            ctx.fillStyle = '#6ab04c';
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height * 0.65);
+            ctx.quadraticCurveTo(canvas.width * 0.3, canvas.height * 0.5, canvas.width * 0.7, canvas.height * 0.6);
+            ctx.quadraticCurveTo(canvas.width * 0.9, canvas.height * 0.65, canvas.width, canvas.height * 0.6);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.fill();
+
+            ctx.fillStyle = '#44bd32';
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height * 0.75);
+            ctx.quadraticCurveTo(canvas.width * 0.4, canvas.height * 0.6, canvas.width * 0.8, canvas.height * 0.72);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.fill();
+
+            // 3. Dibujar las flores amarillas del campo
+            flowers.forEach(f => {
+                ctx.strokeStyle = '#27ae60';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(f.x, f.y);
+                ctx.lineTo(f.x, f.y + f.stemHeight);
+                ctx.stroke();
+
+                ctx.fillStyle = f.color;
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 2 * Math.PI) / 5;
+                    const px = f.x + Math.cos(angle) * (f.size * 0.6);
+                    const py = f.y + Math.sin(angle) * (f.size * 0.6);
+                    ctx.beginPath();
+                    ctx.arc(px, py, f.size * 0.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = '#8e44ad';
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, f.size * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // 4. Actualizar y dibujar las abejas
+            bees.forEach(bee => {
+                bee.wobble += 0.05;
+                bee.x += bee.vx + Math.sin(bee.wobble) * 0.5;
+                bee.y += bee.vy + Math.cos(bee.wobble * 0.8) * 0.3;
+
+                if (bee.x < 50) bee.vx += 0.1;
+                if (bee.x > canvas.width - 50) bee.vx -= 0.1;
+                if (bee.y < 50) bee.vy += 0.1;
+                if (bee.y > canvas.height * 0.85) bee.vy -= 0.1;
+
+                bee.vx = Math.max(Math.min(bee.vx, 2), -2);
+                bee.vy = Math.max(Math.min(bee.vy, 1.5), -1.5);
+
+                bee.wingAngle += 0.4;
+
+                ctx.save();
+                ctx.translate(bee.x, bee.y);
+                if (bee.vx < 0) ctx.scale(-1, 1);
+
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.ellipse(0, 0, bee.size, bee.size * 0.7, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#222';
+                ctx.fillRect(-2, -bee.size * 0.7, 4, bee.size * 1.4);
+                ctx.fillRect(-7, -bee.size * 0.6, 3, bee.size * 1.2);
+
+                ctx.beginPath();
+                ctx.arc(bee.size * 0.8, 0, bee.size * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(bee.size * 0.9, -bee.size * 0.1, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.beginPath();
+                const wingOffset = Math.sin(bee.wingAngle) * 6;
+                ctx.ellipse(-2, -bee.size * 0.8 - wingOffset, bee.size * 0.4, bee.size * 0.7, -Math.PI / 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
